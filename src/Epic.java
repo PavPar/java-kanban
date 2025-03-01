@@ -12,11 +12,16 @@ public class Epic extends Task{
     }
 
     public void removeSubtask(int uid){
-        subtasks.remove(uid);
+        subtasks.remove((Integer) uid);
     }
 
 
     public Epic(String name, String description, int uid, TaskStatus status) {
-        super(name, description, uid, status,TaskTypes.EPIC);
+        super(name, description, uid, status, TaskType.EPIC);
+    }
+
+    public Epic(String name, String description, int uid, TaskStatus status,ArrayList<Integer> subtasks) {
+        super(name, description, uid, status, TaskType.EPIC);
+        this.subtasks = subtasks;
     }
 }

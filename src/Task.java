@@ -6,17 +6,17 @@ public class Task {
     private final int uid;
     private TaskStatus status;
 
-    protected final TaskTypes taskType;
+    protected final TaskType taskType;
 
     public Task(String name, String description, int uid, TaskStatus status) {
         this.name = name;
         this.description = description;
         this.uid = uid;
         this.status = status;
-        this.taskType = TaskTypes.TASK;
+        this.taskType = TaskType.TASK;
     }
 
-    public Task(String name, String description, int uid, TaskStatus status,TaskTypes taskStatus) {
+    public Task(String name, String description, int uid, TaskStatus status, TaskType taskStatus) {
         this.name = name;
         this.description = description;
         this.uid = uid;
@@ -53,7 +53,7 @@ public class Task {
     }
 
 
-    public TaskTypes getTaskType() {
+    public TaskType getTaskType() {
         return taskType;
     }
 
