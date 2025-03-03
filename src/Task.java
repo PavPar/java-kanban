@@ -3,27 +3,26 @@ import java.util.Objects;
 public class Task {
     private String name;
     private String description;
-    private final int uid;
+    private int id;
     private TaskStatus status;
 
-    protected final TaskType taskType;
 
     public Task(String name, String description, int uid, TaskStatus status) {
         this.name = name;
         this.description = description;
-        this.uid = uid;
+        this.id = uid;
         this.status = status;
-        this.taskType = TaskType.TASK;
     }
 
-    public Task(String name, String description, int uid, TaskStatus status, TaskType taskStatus) {
+    public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
-        this.uid = uid;
         this.status = status;
-        this.taskType = taskStatus;
     }
 
+    public void setTaskId(int id){
+        this.id = id;
+    }
     public String getName() {
         return name;
     }
@@ -32,8 +31,8 @@ public class Task {
         return description;
     }
 
-    public int getUid() {
-        return uid;
+    public int getId() {
+        return id;
     }
 
     public TaskStatus getStatus() {
@@ -53,29 +52,23 @@ public class Task {
     }
 
 
-    public TaskType getTaskType() {
-        return taskType;
-    }
-
-
 
     @Override
     public boolean equals(Object o) {
         if(this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
-        return Objects.equals(name, task.name) && Objects.equals(description, task.description) && Objects.equals(uid, task.uid) && status == task.status;
+        return Objects.equals(name, task.name) && Objects.equals(description, task.description) && Objects.equals(id, task.id) && status == task.status;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, uid, status);
+        return Objects.hash(name, description, id, status);
     }
 
     @Override
     public String toString(){
-        return "Задача № "+this.uid
-                + "|" + "Тип : " + this.taskType
+        return "Задача № "+this.id
                 + "|" + "Имя : " + this.name
                 + "|" + "Описание : "+ this.description
                 + "|" + "Статус : " + this.status;
