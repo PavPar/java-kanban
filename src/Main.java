@@ -17,8 +17,7 @@ public class Main {
                     printTasks();
                     break;
                 case 2:
-                    taskManager.resetTaskManager();
-                    System.out.println("Все задачи удалены");
+                    clearTaskManagerDialog();
                     break;
                 case 3:
                     createTaskDialog();
@@ -45,15 +44,15 @@ public class Main {
     private static void printMenu() {
         System.out.println();
         System.out.println("Выберите действие :");
-        System.out.println("0 - Выйти из системы"); // +
+        System.out.println("0 - Выйти из системы");
         System.out.println("========================");
-        System.out.println("1 - Получить список всех задач"); // +
-        System.out.println("2 - Удалить все задачи"); // +
+        System.out.println("1 - Получить список всех задач");
+        System.out.println("2 - Удалить все задачи определенного типа");
         System.out.println("========================");
         System.out.println("3 - Создать задачу");
         System.out.println("4 - Обновить задачу");
         System.out.println("5 - Удалить задачу по ID");
-        System.out.println("6 - Получить задачу по ID"); // +
+        System.out.println("6 - Получить задачу по ID");
         System.out.println("7 - Получить задачи эпика по ID");
         System.out.println();
     }
@@ -166,18 +165,15 @@ public class Main {
             System.out.println("Не удалось найти эпик с ID - " + inputEpicID);
             return;
         };
-
-        System.out.println("Эпик:");
         Epic epic = taskManager.getEpic(inputEpicID);
 
+        System.out.println("Эпик:");
         System.out.println(epic);
-        ArrayList<Integer> subTasksIDs = epic.getSubtasks();
 
         System.out.println("Подзадачи:");
-        for(int id : subTasksIDs){
-            System.out.println(taskManager.getSubtask(id));
+        for(SubTask subTask : taskManager.getEpicSubtasks(inputEpicID)){
+            System.out.println(subTask);
         }
-
     }
 
     private static void deleteTaskByIDDialog() {
@@ -297,5 +293,29 @@ public class Main {
             default:
                 System.out.println("Такого свойства нет");
         }
+    }
+
+    private static void clearTaskManagerDialog(){
+        System.out.println("Выберите тип для очистки");
+        System.out.println("1 - Задачи");
+        System.out.println("2 - Эпики");
+        System.out.println("3 - Подзадачи");
+
+        int choiceInput = scanner.nextInt();
+        switch (choiceInput){
+            case 1:
+                taskManager.resetTasks();
+                return;
+            case 2:
+                taskManager.resetEpics();
+                return;
+            case 3:
+                taskManager.resetSubtasks();
+                return;
+            default:
+                System.out.println("Неизвестный тип");
+        }
+
+
     }
 }

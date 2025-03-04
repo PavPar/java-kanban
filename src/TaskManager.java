@@ -20,16 +20,29 @@ public class TaskManager {
         return new ArrayList<Epic>(epics.values());
     }
 
-    public Task getTask(int uid) {
-        return tasks.get(uid);
+    public Task getTask(int id) {
+        return tasks.get(id);
     }
 
-    public SubTask getSubtask(int uid) {
-        return subTasks.get(uid);
+    public SubTask getSubtask(int id) {
+        return subTasks.get(id);
     }
 
-    public Epic getEpic(int uid) {
-        return epics.get(uid);
+    public Epic getEpic(int id) {
+        return epics.get(id);
+    }
+
+    public ArrayList<SubTask> getEpicSubtasks(int id){
+        ArrayList<SubTask> subTaskArrayList = new ArrayList<SubTask>();
+
+        Epic epic = epics.get(id);
+        ArrayList<Integer> subtasksIds = epic.getSubtasks();
+
+        for(int subTaskId:subtasksIds){
+            subTaskArrayList.add(subTasks.get(subTaskId));
+        }
+
+        return subTaskArrayList;
     }
 
     public void resetTaskManager() {
@@ -37,6 +50,23 @@ public class TaskManager {
         epics.clear();
         subTasks.clear();
         taskCounter = 0;
+    }
+
+
+    public void resetTasks() {
+        tasks.clear();
+    }
+
+    public void resetEpics() {
+        for(Integer epicID: epics.keySet()){
+            this.deleteEpic(epicID);
+        }
+    }
+
+    public void resetSubtasks() {
+        for(Integer subTaskID: subTasks.keySet()){
+            this.deleteSubtask(subTaskID);
+        }
     }
 
     public void addTask(Task task) {
