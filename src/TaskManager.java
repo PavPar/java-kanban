@@ -44,15 +44,7 @@ public class TaskManager {
 
         return subTaskArrayList;
     }
-
-    public void resetTaskManager() {
-        tasks.clear();
-        epics.clear();
-        subTasks.clear();
-        taskCounter = 0;
-    }
-
-
+    
     public void resetTasks() {
         tasks.clear();
     }
