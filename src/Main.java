@@ -1,9 +1,12 @@
+import org.w3c.dom.html.HTMLIsIndexElement;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
     private static Scanner scanner = new Scanner(System.in);
-    private static TaskManager taskManager = new TaskManager();
+    private static TaskManager taskManager = Managers.getDefault();
+    private static HistoryManager historyManager = Managers.getDefaultHistory();
 
     public static void main(String[] args) {
         int input;
@@ -34,6 +37,9 @@ public class Main {
                 case 7:
                     getEpicSubtasksByID();
                     break;
+                case 8:
+                    displayHistory();
+                    break;
                 default:
                     System.out.println("Такой опции нет");
             }
@@ -54,6 +60,7 @@ public class Main {
         System.out.println("5 - Удалить задачу по ID");
         System.out.println("6 - Получить задачу по ID");
         System.out.println("7 - Получить задачи эпика по ID");
+        System.out.println("8 - Получить историю обращений");
         System.out.println();
     }
 
@@ -139,18 +146,27 @@ public class Main {
         System.out.println("Введите ID задачи :");
         int inputTaskID = scanner.nextInt();
 
-        if(taskManager.hasTask(inputTaskID)){
-            System.out.println(taskManager.getTask(inputTaskID).toString());
+        if (taskManager.hasTask(inputTaskID)) {
+            Task task = taskManager.getTask(inputTaskID);
+            System.out.println(task.toString());
+
+            historyManager.add(task);
             return;
         }
 
-        if(taskManager.hasEpic(inputTaskID)){
-            System.out.println(taskManager.getEpic(inputTaskID).toString());
+        if (taskManager.hasEpic(inputTaskID)) {
+            Epic epic = taskManager.getEpic(inputTaskID);
+            System.out.println(epic.toString());
+
+            historyManager.add(epic);
             return;
         }
 
-        if(taskManager.hasSubTask(inputTaskID)){
-            System.out.println(taskManager.getSubtask(inputTaskID).toString());
+        if (taskManager.hasSubTask(inputTaskID)) {
+            SubTask subTask = taskManager.getSubtask(inputTaskID);
+            System.out.println(subTask.toString());
+
+            historyManager.add(subTask);
             return;
         }
 
@@ -161,17 +177,18 @@ public class Main {
         System.out.println("Введите ID эпика :");
         int inputEpicID = scanner.nextInt();
 
-        if(!taskManager.hasEpic(inputEpicID)){
+        if (!taskManager.hasEpic(inputEpicID)) {
             System.out.println("Не удалось найти эпик с ID - " + inputEpicID);
             return;
-        };
+        }
+        ;
         Epic epic = taskManager.getEpic(inputEpicID);
 
         System.out.println("Эпик:");
         System.out.println(epic);
 
         System.out.println("Подзадачи:");
-        for(SubTask subTask : taskManager.getEpicSubtasks(inputEpicID)){
+        for (SubTask subTask : taskManager.getEpicSubtasks(inputEpicID)) {
             System.out.println(subTask);
         }
     }
@@ -180,17 +197,17 @@ public class Main {
         System.out.println("Введите ID задачи :");
         int inputTaskID = scanner.nextInt();
 
-        if(taskManager.hasTask(inputTaskID)){
+        if (taskManager.hasTask(inputTaskID)) {
             taskManager.deleteTask(inputTaskID);
             return;
         }
 
-        if(taskManager.hasEpic(inputTaskID)){
+        if (taskManager.hasEpic(inputTaskID)) {
             taskManager.deleteEpic(inputTaskID);
             return;
         }
 
-        if(taskManager.hasSubTask(inputTaskID)){
+        if (taskManager.hasSubTask(inputTaskID)) {
             taskManager.deleteSubtask(inputTaskID);
             return;
         }
@@ -206,32 +223,32 @@ public class Main {
         boolean isEpic = taskManager.hasEpic(inputTaskID);
         boolean isSubtask = taskManager.hasSubTask(inputTaskID);
 
-        if(isTask){
-            Task task =taskManager.getTask(inputTaskID);
+        if (isTask) {
+            Task task = taskManager.getTask(inputTaskID);
             System.out.println("Найден элемент: ");
             System.out.println(task);
 
             Task newTask = new Task(task.getName(), task.getDescription(), task.getId(), task.getStatus());
-            taskUpdateDialog(newTask,true);
+            taskUpdateDialog(newTask, true);
             taskManager.updateTask(newTask);
             return;
         }
 
-        if(isEpic){
-            Epic epic =taskManager.getEpic(inputTaskID);
+        if (isEpic) {
+            Epic epic = taskManager.getEpic(inputTaskID);
             System.out.println("Найден элемент: ");
             System.out.println(epic);
 
-            Epic newEpic = new Epic(epic.getName(), epic.getDescription(), epic.getId(),epic.getStatus(),epic.getSubtasks());
-            taskUpdateDialog(newEpic,false);
+            Epic newEpic = new Epic(epic.getName(), epic.getDescription(), epic.getId(), epic.getStatus(), epic.getSubtasks());
+            taskUpdateDialog(newEpic, false);
             taskManager.updateEpic(newEpic);
             return;
         }
 
-        if(isSubtask){
+        if (isSubtask) {
             SubTask subtask = taskManager.getSubtask(inputTaskID);
-            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(),subtask.getId(), subtask.getStatus(),subtask.getEpicID());
-            taskUpdateDialog(newSubtask,true);
+            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus(), subtask.getEpicID());
+            taskUpdateDialog(newSubtask, true);
             taskManager.updateSubtask(newSubtask);
 
             return;
@@ -240,12 +257,12 @@ public class Main {
         System.out.println("Такого ID нет");
     }
 
-    private static void taskUpdateDialog(Task newTask,boolean canChangeStatus) {
+    private static void taskUpdateDialog(Task newTask, boolean canChangeStatus) {
         System.out.println("Какое свойство вы хотите поменять?");
         System.out.println("1 - Имя");
         System.out.println("2 - Описание");
 
-        if(canChangeStatus){
+        if (canChangeStatus) {
             System.out.println("3 - Статус");
         }
 
@@ -264,7 +281,7 @@ public class Main {
                 break;
             }
             case 3: {
-                if(!canChangeStatus){
+                if (!canChangeStatus) {
                     System.out.println("Редактирование этого свойства запрещено");
                 }
                 System.out.println("Выберите статус");
@@ -274,7 +291,7 @@ public class Main {
 
                 int statusInput = scanner.nextInt();
 
-                switch (statusInput){
+                switch (statusInput) {
                     case 1:
                         newTask.setStatus(TaskStatus.NEW);
                         break;
@@ -295,14 +312,14 @@ public class Main {
         }
     }
 
-    private static void clearTaskManagerDialog(){
+    private static void clearTaskManagerDialog() {
         System.out.println("Выберите тип для очистки");
         System.out.println("1 - Задачи");
         System.out.println("2 - Эпики");
         System.out.println("3 - Подзадачи");
 
         int choiceInput = scanner.nextInt();
-        switch (choiceInput){
+        switch (choiceInput) {
             case 1:
                 taskManager.resetTasks();
                 return;
@@ -315,7 +332,17 @@ public class Main {
             default:
                 System.out.println("Неизвестный тип");
         }
+    }
 
+    private static void displayHistory() {
+        ArrayList<Task> history = historyManager.getHistory();
+
+        System.out.println("История обращений");
+
+        int index = 0;
+        for (Task task : history) {
+            System.out.println(++index + " - " + task.toString());
+        }
 
     }
 }
