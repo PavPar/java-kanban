@@ -137,7 +137,8 @@ public class Main {
             return;
         }
 
-        SubTask subTask = new SubTask(name, description, TaskStatus.NEW, epicID);
+        SubTask subTask = new SubTask(name, description, TaskStatus.NEW);
+        subTask.setEpicID(epicID);
         taskManager.addSubtask(subTask);
         System.out.println("Подзадача добавлена");
     }
@@ -247,7 +248,8 @@ public class Main {
 
         if (isSubtask) {
             SubTask subtask = taskManager.getSubtask(inputTaskID);
-            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus(), subtask.getEpicID());
+            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus());
+            newSubtask.setEpicID(subtask.getEpicID());
             taskUpdateDialog(newSubtask, true);
             taskManager.updateSubtask(newSubtask);
 
