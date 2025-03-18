@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public interface TaskManager {
 
@@ -30,4 +31,6 @@ public interface TaskManager {
      boolean hasTask(int id);
      boolean hasEpic(int id);
      boolean hasSubTask(int id);
+
+     List<Task> getHistory();
 }

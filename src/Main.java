@@ -1,12 +1,13 @@
 import org.w3c.dom.html.HTMLIsIndexElement;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
 
 public class Main {
     private static Scanner scanner = new Scanner(System.in);
     private static TaskManager taskManager = Managers.getDefault();
-    private static HistoryManager historyManager = Managers.getDefaultHistory();
 
     public static void main(String[] args) {
         int input;
@@ -150,24 +151,18 @@ public class Main {
         if (taskManager.hasTask(inputTaskID)) {
             Task task = taskManager.getTask(inputTaskID);
             System.out.println(task.toString());
-
-            historyManager.add(task);
             return;
         }
 
         if (taskManager.hasEpic(inputTaskID)) {
             Epic epic = taskManager.getEpic(inputTaskID);
             System.out.println(epic.toString());
-
-            historyManager.add(epic);
             return;
         }
 
         if (taskManager.hasSubTask(inputTaskID)) {
             SubTask subTask = taskManager.getSubtask(inputTaskID);
             System.out.println(subTask.toString());
-
-            historyManager.add(subTask);
             return;
         }
 
@@ -337,7 +332,7 @@ public class Main {
     }
 
     private static void displayHistory() {
-        ArrayList<Task> history = historyManager.getHistory();
+        List<Task> history = taskManager.getHistory();
 
         System.out.println("История обращений");
 
