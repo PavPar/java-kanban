@@ -195,6 +195,7 @@ public class Main {
 
         if (taskManager.hasTask(inputTaskID)) {
             taskManager.deleteTask(inputTaskID);
+
             return;
         }
 
