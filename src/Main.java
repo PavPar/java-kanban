@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Main {
     private static Scanner scanner = new Scanner(System.in);
-    private static TaskManager taskManager = Managers.getDefault();
+    private static TaskManager taskManager = Managers.getFileBackendTaskManager();
 
     public static void main(String[] args) {
         int input;
