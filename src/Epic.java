@@ -23,6 +23,12 @@ public class Epic extends Task{
         subtasks.add(uid);
     }
 
+    public void addSubtasks(ArrayList<Integer> uids){
+        for(Integer uid: uids){
+            addSubtask(uid);
+        }
+    }
+
     public void removeSubtask(int uid){
         subtasks.remove((Integer) uid);
     }
