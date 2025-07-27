@@ -2,10 +2,29 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 
 public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final HashMap<CSVFields,Integer> CSVKeyIndexValue = new LinkedHashMap<>();
+
+    FileBackedTaskManager(){
+        super();
+        CSVKeyIndexValue.put(CSVFields.id,0);
+        CSVKeyIndexValue.put(CSVFields.type,1);
+        CSVKeyIndexValue.put(CSVFields.name,2);
+        CSVKeyIndexValue.put(CSVFields.status,3);
+        CSVKeyIndexValue.put(CSVFields.description,4);
+        CSVKeyIndexValue.put(CSVFields.startDate,5);
+        CSVKeyIndexValue.put(CSVFields.duration,6);
+        CSVKeyIndexValue.put(CSVFields.epic,7);
+    }
     @Override
     public void addTask(Task task) {
         super.addTask(task);
@@ -76,35 +95,54 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     }
 
     private static Task getTaskFromString(String[] values) {
-        int id = Integer.parseInt(values[0]);
-        String name = values[2];
-        TaskStatus status = TaskStatus.valueOf(values[3]);
-        String description = values[4];
+        int id = Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.id)]);
+        String name = values[CSVKeyIndexValue.get(CSVFields.name)];
+        TaskStatus status = TaskStatus.valueOf(values[CSVKeyIndexValue.get(CSVFields.status)]);
+        String description = values[CSVKeyIndexValue.get(CSVFields.description)];
+        String startDateString = values[CSVKeyIndexValue.get(CSVFields.startDate)];
+        if(startDateString.equals("null")){
+            return new Task(name, description, id, status);
+        }
 
+        LocalDateTime time = LocalDateTime.parse(startDateString,dateTimeFormatter);
+        Duration duration = Duration.ofMinutes(Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.duration)]));
 
-        return new Task(name, description, id, status);
+        return new Task(name, description, id, status,time,duration);
     }
 
     private static Epic getEpicFromString(String[] values) {
-        int id = Integer.parseInt(values[0]);
-        String name = values[2];
-        TaskStatus status = TaskStatus.valueOf(values[3]);
-        String description = values[4];
+        int id = Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.id)]);
+        String name = values[CSVKeyIndexValue.get(CSVFields.name)];
+        TaskStatus status = TaskStatus.valueOf(values[CSVKeyIndexValue.get(CSVFields.status)]);
+        String description = values[CSVKeyIndexValue.get(CSVFields.description)];
 
+        String startDateString = values[CSVKeyIndexValue.get(CSVFields.startDate)];
+        if(startDateString.equals("null")){
+            return new Epic(name, description, id, status, new ArrayList<>());
+        }
 
-        return new Epic(name, description, id, status, new ArrayList<>());
+        LocalDateTime time = LocalDateTime.parse(startDateString,dateTimeFormatter);
+        Duration duration = Duration.ofMinutes(Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.duration)]));
+
+        return new Epic(name,description,id,status,new ArrayList<>(),time,duration);
     }
 
     private static SubTask getSubtaskFromString(String[] values) {
-        int id = Integer.parseInt(values[0]);
-        String name = values[2];
-        TaskStatus status = TaskStatus.valueOf(values[3]);
-        String description = values[4];
-        int epicId = Integer.parseInt(values[5]);
+        int id = Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.id)]);
+        String name = values[CSVKeyIndexValue.get(CSVFields.name)];
+        TaskStatus status = TaskStatus.valueOf(values[CSVKeyIndexValue.get(CSVFields.status)]);
+        String description = values[CSVKeyIndexValue.get(CSVFields.description)];
 
-        SubTask task = new SubTask(name, description, id, status);
+        int epicId = Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.epic)]);
+
+        String startDateString = values[CSVKeyIndexValue.get(CSVFields.startDate)];
+        LocalDateTime time = LocalDateTime.parse(startDateString,dateTimeFormatter);
+        Duration duration = Duration.ofMinutes(Integer.parseInt(values[CSVKeyIndexValue.get(CSVFields.duration)]));
+
+        SubTask task = new SubTask(name, description, id, status,time,duration);
         task.setEpicID(epicId);
         return task;
+
     }
 
     private StringBuilder transformTaskToString(Task task, TaskType type) {
@@ -115,6 +153,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                 .append(task.getName()).append(separator)
                 .append(task.getStatus()).append(separator)
                 .append(task.getDescription()).append(separator);
+        if (Objects.nonNull(task.getStartTime())) {
+            builder.append(dateTimeFormatter.format(task.getStartTime())).append(separator);
+        } else {
+            builder.append(task.getStartTime()).append(separator);
+        }
+        builder.append(task.getDuration().toMinutes()).append(separator);
         return builder;
     }
 
@@ -185,12 +229,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     private String createFileHeader() {
         StringBuilder builder = new StringBuilder();
         char separator = ',';
-        builder.append("id").append(separator)
-                .append("type").append(separator)
-                .append("name").append(separator)
-                .append("status").append(separator)
-                .append("description").append(separator)
-                .append("epic");
+
+        int index = 0;
+        for(CSVFields key : CSVKeyIndexValue.keySet()){
+            if(index == CSVKeyIndexValue.keySet().size() - 1){
+                builder.append(key);
+                continue;
+            }
+            builder.append(key).append(separator);
+            index++;
+        }
         return builder.toString();
     }
 
@@ -207,17 +255,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             for (Task task : this.getTasks()) {
                 lines.add(transformTaskToString(task).toString());
             }
-            ;
+
 
             for (Epic epic : this.getEpics()) {
                 lines.add(transformTaskToString(epic).toString());
             }
-            ;
+
 
             for (SubTask subtask : this.getSubTasks()) {
                 lines.add(transformTaskToString(subtask).toString());
             }
-            ;
+
 
             writeLinesToFile(path, lines, true);
         } catch (IOException e) {

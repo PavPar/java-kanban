@@ -1,5 +1,8 @@
 import org.w3c.dom.html.HTMLIsIndexElement;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -8,6 +11,8 @@ import java.util.Scanner;
 public class Main {
     private static Scanner scanner = new Scanner(System.in);
     private static TaskManager taskManager = Managers.getFileBackendTaskManager();
+    private static final String DATE_TIME_FORMAT_PATTERN = "dd.MM.yyyy-HH:mm";
+    private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATTERN);
 
     public static void main(String[] args) {
         int input;
@@ -41,6 +46,9 @@ public class Main {
                 case 8:
                     displayHistory();
                     break;
+                case 9:
+                    displayTaskPriority();
+                    break;
                 default:
                     System.out.println("Такой опции нет");
             }
@@ -62,16 +70,25 @@ public class Main {
         System.out.println("6 - Получить задачу по ID");
         System.out.println("7 - Получить задачи эпика по ID");
         System.out.println("8 - Получить историю обращений");
-        System.out.println();
+        System.out.println("9 - Получить список задач по приоритету");
     }
 
     private static void printTasks() {
-        System.out.println("Обычные задачи: ");
-        System.out.println(taskManager.getTasks());
-        System.out.println("Эпики: ");
-        System.out.println(taskManager.getEpics());
-        System.out.println("Подзадачи эпиков: ");
-        System.out.println(taskManager.getSubTasks());
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("Обычные задачи: ").append("\n");
+        taskManager.getTasks().forEach((task) -> builder.append(task).append("\n"));
+        builder.append("\n");
+
+        builder.append("Эпики: ").append("\n");
+        taskManager.getEpics().forEach((task) -> builder.append(task).append("\n"));
+        builder.append("\n");
+
+        builder.append("Подзадачи эпиков: ").append("\n");
+        taskManager.getSubTasks().forEach((task) -> builder.append(task).append("\n"));
+        builder.append("\n");
+
+        System.out.println(builder);
     }
 
     private static void createTaskDialog() {
@@ -80,23 +97,28 @@ public class Main {
         System.out.println("2 - Эпик");
         System.out.println("3 - Подзадача");
 
-        int input = scanner.nextInt();
-        switch (input) {
-            case 1: {
-                createTask();
-                break;
+        try {
+            int input = scanner.nextInt();
+            switch (input) {
+                case 1: {
+                    createTask();
+                    break;
+                }
+                case 2: {
+                    createEpic();
+                    break;
+                }
+                case 3: {
+                    createSubTask();
+                    break;
+                }
+                default:
+                    System.out.println("Такого типа нет");
             }
-            case 2: {
-                createEpic();
-                break;
-            }
-            case 3: {
-                createSubTask();
-                break;
-            }
-            default:
-                System.out.println("Такого типа нет");
+        } catch (Throwable e) {
+            System.out.println("Произошла ошибка создания" + e.getMessage());
         }
+
     }
 
     private static void createTask() {
@@ -106,8 +128,21 @@ public class Main {
         System.out.println("Введите описание задачи:");
         String description = scanner.next();
 
-        Task task = new Task(name, description, TaskStatus.NEW);
+        System.out.println("Введите дату начала задачи в формате :" + DATE_TIME_FORMAT_PATTERN);
+        LocalDateTime startTime = LocalDateTime.parse(scanner.next(), dateTimeFormatter);
+
+        System.out.println("Введите продолжительноссть задачи в минутах");
+        Duration duration = Duration.ofMinutes(scanner.nextInt());
+
+        Task task = new Task(name, description, TaskStatus.NEW, startTime, duration);
+
+        if(areTaskOverLappingCheck(task)){
+            System.out.println("Нельзя добавить задачу с пересечением");
+            return;
+        }
+
         taskManager.addTask(task);
+
         System.out.println("Задача добавлена");
     }
 
@@ -138,8 +173,20 @@ public class Main {
             return;
         }
 
-        SubTask subTask = new SubTask(name, description, TaskStatus.NEW);
+        System.out.println("Введите дату начала задачи в формате :" + DATE_TIME_FORMAT_PATTERN);
+        LocalDateTime startTime = LocalDateTime.parse(scanner.next(), dateTimeFormatter);
+
+        System.out.println("Введите продолжительноссть задачи в минутах");
+        Duration duration = Duration.ofMinutes(scanner.nextInt());
+
+
+        SubTask subTask = new SubTask(name, description, TaskStatus.NEW, startTime, duration);
         subTask.setEpicID(epicID);
+
+        if(areTaskOverLappingCheck(subTask)){
+            System.out.println("Нельзя добавить задачу с пересечением");
+            return;
+        }
         taskManager.addSubtask(subTask);
         System.out.println("Подзадача добавлена");
     }
@@ -244,7 +291,7 @@ public class Main {
 
         if (isSubtask) {
             SubTask subtask = taskManager.getSubtask(inputTaskID);
-            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus());
+            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus(),subtask.getStartTime(),subtask.getDuration());
             newSubtask.setEpicID(subtask.getEpicID());
             taskUpdateDialog(newSubtask, true);
             taskManager.updateSubtask(newSubtask);
@@ -341,6 +388,17 @@ public class Main {
         for (Task task : history) {
             System.out.println(++index + " - " + task.toString());
         }
+    }
 
+    private static void displayTaskPriority() {
+        List<Task> tasks = taskManager.getPrioritizedTasks();
+        StringBuilder builder = new StringBuilder();
+        tasks.forEach((task) -> builder.append(task).append("\n"));
+        System.out.println(builder);
+    }
+
+    private static boolean areTaskOverLappingCheck(Task task) {
+        List<Task> tasks = taskManager.getPrioritizedTasks();
+        return tasks.stream().filter(t -> taskManager.areTasksTimeOverlapping(t, task)).findFirst().isPresent();
     }
 }

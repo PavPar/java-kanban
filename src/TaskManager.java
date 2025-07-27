@@ -33,4 +33,6 @@ public interface TaskManager {
      boolean hasSubTask(int id);
 
      List<Task> getHistory();
+     List<Task> getPrioritizedTasks();
+     boolean areTasksTimeOverlapping(Task a,Task b);
 }
