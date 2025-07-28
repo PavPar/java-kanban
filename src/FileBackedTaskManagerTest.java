@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 class FileBackedTaskManagerTest {
@@ -51,7 +53,7 @@ class FileBackedTaskManagerTest {
     @Test
     public void shouldStoreEpicAndSubtask() {
         Epic epic = new Epic("test", "test", TaskStatus.NEW);
-        SubTask subTask = new SubTask("test", "test", TaskStatus.NEW);
+        SubTask subTask = new SubTask("test", "test", TaskStatus.NEW, LocalDateTime.now(), Duration.ofMinutes(10));
 
         File file = new File("test.csv");
 
@@ -60,7 +62,6 @@ class FileBackedTaskManagerTest {
 
         subTask.setEpicID(epic.getId());
         epic.addSubtask(subTask.getId());
-
 
         FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(file);
 
@@ -82,13 +83,13 @@ class FileBackedTaskManagerTest {
     public void shouldStoreMultipleEpicsAndSubtasks() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder
-                .append("id,type,name,status,description,epic").append("\n")
-                .append("0,EPIC,1,NEW,1,").append("\n")
-                .append("1,EPIC,1,NEW,1,").append("\n")
-                .append("2,EPIC,1,NEW,1,").append("\n")
-                .append("3,SUBTASK,1,NEW,1,0").append("\n")
-                .append("4,SUBTASK,1,NEW,1,1").append("\n")
-                .append("5,SUBTASK,1,NEW,1,1").append("\n");
+                .append("id,type,name,status,description,startDate,duration,epic").append("\n")
+                .append("0,EPIC,1,NEW,1,10.01.2000 00:00,50,").append("\n")
+                .append("1,EPIC,1,NEW,1,05.01.2000 10:00,112,").append("\n")
+                .append("2,EPIC,1,NEW,1,null,0,").append("\n")
+                .append("3,SUBTASK,1,NEW,1,10.01.2000 00:00,50,0").append("\n")
+                .append("4,SUBTASK,1,NEW,1,10.01.2000 10:00,100,1").append("\n")
+                .append("5,SUBTASK,1,NEW,1,05.01.2000 10:00,12,1").append("\n");
 
         File file = File.createTempFile("test_1", ".csv");
         FileWriter wr = new FileWriter(file.getPath());
@@ -138,5 +139,4 @@ class FileBackedTaskManagerTest {
         Assertions.assertEquals(0, tasks.get(0).getId());
         Assertions.assertEquals(1, tasks.get(1).getId());
     }
-
 }
