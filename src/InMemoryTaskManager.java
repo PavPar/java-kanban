@@ -113,17 +113,10 @@ public class InMemoryTaskManager implements TaskManager {
             tasksTreeMapByDate.add(subTask);
         }
 
-        epic.setStatus(recalculateEpicStatus(epic));
-        epic.setDuration(Duration.ofMinutes(getSubtasksTotalDuration(epic)));
-
-        Optional<LocalDateTime> newStartTime = getEpicStartTime(epic);
-        if (newStartTime.isPresent()) {
-            epic.setStartTIme(newStartTime.get());
-        } else {
-            epic.setStartTIme(null);
-        }
+        recalculateEpic(epic);
     }
 
+    @Override
     public ArrayList<Task> getPrioritizedTasks() {
         return new ArrayList<Task>(tasksTreeMapByDate);
     }
@@ -156,15 +149,7 @@ public class InMemoryTaskManager implements TaskManager {
         historyManager.remove(epics.get(subTask.getEpicID()));
         Epic epic = epics.get(subTask.getEpicID());
 
-        epic.setStatus(recalculateEpicStatus(epic));
-        epic.setDuration(Duration.ofMinutes(getSubtasksTotalDuration(epic)));
-
-        Optional<LocalDateTime> newStartTime = getEpicStartTime(epic);
-        if (newStartTime.isPresent()) {
-            epic.setStartTIme(newStartTime.get());
-        } else {
-            epic.setStartTIme(null);
-        }
+        recalculateEpic(epic);
     }
 
     @Override
@@ -184,15 +169,7 @@ public class InMemoryTaskManager implements TaskManager {
         tasksTreeMapByDate.remove(subTasks.get(uid));
         subTasks.remove(uid);
 
-        epic.setStatus(recalculateEpicStatus(epic));
-        epic.setDuration(Duration.ofMinutes(getSubtasksTotalDuration(epic)));
-
-        Optional<LocalDateTime> newStartTime = getEpicStartTime(epic);
-        if (newStartTime.isPresent()) {
-            epic.setStartTIme(newStartTime.get());
-        } else {
-            epic.setStartTIme(null);
-        }
+        recalculateEpic(epic);
     }
 
     @Override
@@ -220,8 +197,40 @@ public class InMemoryTaskManager implements TaskManager {
         return epics.containsKey(id);
     }
 
+    @Override
+    public boolean areTasksTimeOverlapping(Task taskA, Task taskB) {
+        LocalDateTime taskAStartTime = taskA.getStartTime();
+        LocalDateTime taskAEndTime = taskA.getEndTime();
+
+        LocalDateTime taskBStartTime = taskB.getStartTime();
+        LocalDateTime taskBEndTime = taskB.getEndTime();
+
+
+        return (taskAStartTime.isBefore(taskBStartTime) || taskAStartTime.isEqual(taskBStartTime)) && (taskAEndTime.isAfter(taskBStartTime) || taskAEndTime.isEqual(taskBStartTime)) ||
+                (taskAStartTime.isBefore(taskBEndTime) || taskAStartTime.isEqual(taskBEndTime)) && (taskAEndTime.isAfter(taskBEndTime) || taskAEndTime.isEqual(taskBEndTime));
+
+    }
+
     private int getNextTaskId() {
         return taskCounter++;
+    }
+
+    private void recalculateEpic(Epic epic){
+        epic.setStatus(recalculateEpicStatus(epic));
+
+        Optional<LocalDateTime> newStartTime = getEpicStartTime(epic);
+        if (newStartTime.isPresent()) {
+            epic.setStartTIme(newStartTime.get());
+
+            Duration epicDuration = Duration.ofMinutes(getSubtasksTotalDuration(epic));
+
+            epic.setEndTime(epic.getStartTime().plus(epicDuration));
+            epic.setDuration(epicDuration);
+        } else {
+            epic.setStartTIme(null);
+            epic.setEndTime(null);
+            epic.setDuration(Duration.ofMinutes(0));
+        }
     }
 
     private TaskStatus recalculateEpicStatus(Epic epic) {
@@ -267,16 +276,5 @@ public class InMemoryTaskManager implements TaskManager {
                 .findFirst();
     }
 
-    public boolean areTasksTimeOverlapping(Task taskA, Task taskB) {
-        LocalDateTime taskAStartTime = taskA.getStartTime();
-        LocalDateTime taskAEndTime = taskA.getEndTime();
 
-        LocalDateTime taskBStartTime = taskB.getStartTime();
-        LocalDateTime taskBEndTime = taskB.getEndTime();
-
-
-        return (taskAStartTime.isBefore(taskBStartTime) || taskAStartTime.isEqual(taskBStartTime)) && (taskAEndTime.isAfter(taskBStartTime) || taskAEndTime.isEqual(taskBStartTime)) ||
-                (taskAStartTime.isBefore(taskBEndTime) || taskAStartTime.isEqual(taskBEndTime)) && (taskAEndTime.isAfter(taskBEndTime) || taskAEndTime.isEqual(taskBEndTime));
-
-    }
 }

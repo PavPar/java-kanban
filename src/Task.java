@@ -87,10 +87,6 @@ public class Task {
     public LocalDateTime getStartTime() {
         return startTime;
     }
-//
-//    public String getStartTimeFormatted() {
-//        return dateTimeFormatter.format(time.get());
-//    }
 
     public Duration getDuration() {
         return duration;

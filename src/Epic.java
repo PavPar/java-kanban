@@ -5,6 +5,7 @@ import java.util.Objects;
 
 public class Epic extends Task {
     private ArrayList<Integer> subtasks = new ArrayList<>();
+    private LocalDateTime endTime;
 
     public Epic(String name, String description, TaskStatus status) {
         super(name, description, status);
@@ -15,8 +16,18 @@ public class Epic extends Task {
         this.subtasks = subtasks;
     }
 
-    public <E> Epic(String name, String description, int id, TaskStatus status, ArrayList<E> es, LocalDateTime time, Duration duration) {
+    public Epic(String name, String description, int id, TaskStatus status, ArrayList<Integer> subtasks, LocalDateTime time, Duration duration) {
         super(name, description, id, status,time,duration);
+        this.subtasks = subtasks;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
+    public LocalDateTime getEndTime(){
+        return this.endTime;
     }
 
     public ArrayList<Integer> getSubtasks() {
