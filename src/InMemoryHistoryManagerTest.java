@@ -14,6 +14,12 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
+    public void shouldWorkEmpty(){
+        ArrayList<Task> tasks = manager.getHistory();
+        Assertions.assertEquals(0,tasks.size());
+    }
+
+    @Test
     public void shouldStoreTask(){
         Task task = new Task("test","test",TaskStatus.NEW);
         task.setTaskId(1);
@@ -126,6 +132,72 @@ class InMemoryHistoryManagerTest {
         Assertions.assertEquals(0,tasks.indexOf(task_1));
         Assertions.assertEquals(1,tasks.indexOf(task_3));
         Assertions.assertEquals(2,tasks.indexOf(task_2));
+    }
+
+    @Test
+    public void shouldDeleteMiddleTask(){
+        Task task_1 = new Task("test","test",TaskStatus.NEW);
+        Task task_2 = new Task("test","test",TaskStatus.NEW);
+        Task task_3 = new Task("test","test",TaskStatus.NEW);
+
+        task_1.setTaskId(1);
+        task_2.setTaskId(2);
+        task_3.setTaskId(3);
+
+        manager.add(task_1);
+        manager.add(task_2);
+        manager.add(task_3);
+
+        manager.remove(task_2);
+
+        ArrayList<Task> tasks = manager.getHistory();
+
+        Assertions.assertEquals(1,tasks.indexOf(task_1));
+        Assertions.assertEquals(0,tasks.indexOf(task_3));
+    }
+
+    @Test
+    public void shouldDeleteFirstTask(){
+        Task task_1 = new Task("test","test",TaskStatus.NEW);
+        Task task_2 = new Task("test","test",TaskStatus.NEW);
+        Task task_3 = new Task("test","test",TaskStatus.NEW);
+
+        task_1.setTaskId(1);
+        task_2.setTaskId(2);
+        task_3.setTaskId(3);
+
+        manager.add(task_1);
+        manager.add(task_2);
+        manager.add(task_3);
+
+        manager.remove(task_1);
+
+        ArrayList<Task> tasks = manager.getHistory();
+
+        Assertions.assertEquals(1,tasks.indexOf(task_2));
+        Assertions.assertEquals(0,tasks.indexOf(task_3));
+    }
+
+    @Test
+    public void shouldDeleteLastTask(){
+        Task task_1 = new Task("test","test",TaskStatus.NEW);
+        Task task_2 = new Task("test","test",TaskStatus.NEW);
+        Task task_3 = new Task("test","test",TaskStatus.NEW);
+
+        task_1.setTaskId(1);
+        task_2.setTaskId(2);
+        task_3.setTaskId(3);
+
+        manager.add(task_1);
+        manager.add(task_2);
+        manager.add(task_3);
+
+        manager.remove(task_3);
+
+        ArrayList<Task> tasks = manager.getHistory();
+
+        Assertions.assertEquals(1,tasks.indexOf(task_1));
+        Assertions.assertEquals(0,tasks.indexOf(task_2));
     }
 
 
