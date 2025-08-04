@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskManager {
 
@@ -7,9 +8,9 @@ public interface TaskManager {
      ArrayList<SubTask> getSubTasks();
      ArrayList<Epic> getEpics();
 
-     Task getTask(int id);
-     SubTask getSubtask(int id);
-     Epic getEpic(int id);
+     Optional<Task> getTask(int id);
+     Optional<SubTask> getSubtask(int id);
+     Optional<Epic> getEpic(int id);
      ArrayList<SubTask> getEpicSubtasks(int id);
 
      void resetTasks();
@@ -35,4 +36,5 @@ public interface TaskManager {
      List<Task> getHistory();
      List<Task> getPrioritizedTasks();
      boolean areTasksTimeOverlapping(Task a,Task b);
+     boolean areTaskOverLappingCheck(Task a,Boolean ignoreSelf);
 }

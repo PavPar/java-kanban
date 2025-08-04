@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 
@@ -136,7 +137,7 @@ public class Main {
 
         Task task = new Task(name, description, TaskStatus.NEW, startTime, duration);
 
-        if(areTaskOverLappingCheck(task)){
+        if (areTaskOverLappingCheck(task)) {
             System.out.println("Нельзя добавить задачу с пересечением");
             return;
         }
@@ -183,7 +184,7 @@ public class Main {
         SubTask subTask = new SubTask(name, description, TaskStatus.NEW, startTime, duration);
         subTask.setEpicID(epicID);
 
-        if(areTaskOverLappingCheck(subTask)){
+        if (areTaskOverLappingCheck(subTask)) {
             System.out.println("Нельзя добавить задачу с пересечением");
             return;
         }
@@ -194,21 +195,21 @@ public class Main {
     private static void getTaskByIDDialog() {
         System.out.println("Введите ID задачи :");
         int inputTaskID = scanner.nextInt();
+        Optional<Task> task = taskManager.getTask(inputTaskID);
 
-        if (taskManager.hasTask(inputTaskID)) {
-            Task task = taskManager.getTask(inputTaskID);
-            System.out.println(task.toString());
+        if (task.isPresent()) {
+            System.out.println(task.get().toString());
             return;
         }
+        Optional<Epic> epic = taskManager.getEpic(inputTaskID);
 
-        if (taskManager.hasEpic(inputTaskID)) {
-            Epic epic = taskManager.getEpic(inputTaskID);
+        if (epic.isPresent()) {
             System.out.println(epic.toString());
             return;
         }
 
-        if (taskManager.hasSubTask(inputTaskID)) {
-            SubTask subTask = taskManager.getSubtask(inputTaskID);
+        Optional<SubTask> subTask = taskManager.getSubtask(inputTaskID);
+        if (subTask.isPresent()) {
             System.out.println(subTask.toString());
             return;
         }
@@ -224,11 +225,16 @@ public class Main {
             System.out.println("Не удалось найти эпик с ID - " + inputEpicID);
             return;
         }
-        ;
-        Epic epic = taskManager.getEpic(inputEpicID);
+
+        Optional<Epic> epic = taskManager.getEpic(inputEpicID);
+
+        if (epic.isEmpty()) {
+            System.out.println("Не удалось найти эпик с ID - " + inputEpicID);
+            return;
+        }
 
         System.out.println("Эпик:");
-        System.out.println(epic);
+        System.out.println(epic.get());
 
         System.out.println("Подзадачи:");
         for (SubTask subTask : taskManager.getEpicSubtasks(inputEpicID)) {
@@ -268,31 +274,42 @@ public class Main {
         boolean isSubtask = taskManager.hasSubTask(inputTaskID);
 
         if (isTask) {
-            Task task = taskManager.getTask(inputTaskID);
+            Optional<Task> task = taskManager.getTask(inputTaskID);
             System.out.println("Найден элемент: ");
             System.out.println(task);
 
-            Task newTask = new Task(task.getName(), task.getDescription(), task.getId(), task.getStatus());
+            if (task.isEmpty()) {
+                return;
+            }
+
+            Task newTask = new Task(task.get().getName(), task.get().getDescription(), task.get().getId(), task.get().getStatus());
             taskUpdateDialog(newTask, true);
             taskManager.updateTask(newTask);
             return;
         }
 
         if (isEpic) {
-            Epic epic = taskManager.getEpic(inputTaskID);
+            Optional<Epic> epic = taskManager.getEpic(inputTaskID);
+            if (epic.isEmpty()) {
+                return;
+            }
             System.out.println("Найден элемент: ");
             System.out.println(epic);
 
-            Epic newEpic = new Epic(epic.getName(), epic.getDescription(), epic.getId(), epic.getStatus(), epic.getSubtasks());
+
+            Epic newEpic = new Epic(epic.get().getName(), epic.get().getDescription(), epic.get().getId(), epic.get().getStatus(), epic.get().getSubtasks());
             taskUpdateDialog(newEpic, false);
             taskManager.updateEpic(newEpic);
             return;
         }
 
         if (isSubtask) {
-            SubTask subtask = taskManager.getSubtask(inputTaskID);
-            SubTask newSubtask = new SubTask(subtask.getName(), subtask.getDescription(), subtask.getId(), subtask.getStatus(),subtask.getStartTime(),subtask.getDuration());
-            newSubtask.setEpicID(subtask.getEpicID());
+            Optional<SubTask> subtask = taskManager.getSubtask(inputTaskID);
+            if(subtask.isEmpty()){
+                return;
+            }
+            SubTask newSubtask = new SubTask(subtask.get().getName(), subtask.get().getDescription(), subtask.get().getId(), subtask.get().getStatus(), subtask.get().getStartTime(), subtask.get().getDuration());
+            newSubtask.setEpicID(subtask.get().getEpicID());
             taskUpdateDialog(newSubtask, true);
             taskManager.updateSubtask(newSubtask);
 

@@ -1,9 +1,12 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Task {
     private String name;
@@ -12,7 +15,6 @@ public class Task {
     private TaskStatus status;
     private Duration duration = Duration.ofMinutes(0);
     private LocalDateTime startTime;
-    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd:MM:yyyy HH:mm");
 
     public Task(String name, String description, int uid, TaskStatus status) {
         this.name = name;
@@ -111,11 +113,41 @@ public class Task {
 
     @Override
     public String toString() {
+         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd:MM:yyyy HH:mm");
+
+        if(Objects.nonNull(this.startTime)){
+            return "Задача № " + this.id
+                    + "|" + "Имя : " + this.name
+                    + "|" + "Описание : " + this.description
+                    + "|" + "Статус : " + this.status
+                    + "|" + "Дата начала  : " + dateTimeFormatter.format(this.startTime)
+                    + "|" + "Продолжительность (минут) : " + this.duration.toMinutes();
+
+        }
+
         return "Задача № " + this.id
                 + "|" + "Имя : " + this.name
                 + "|" + "Описание : " + this.description
-                + "|" + "Статус : " + this.status
-                + "|" + "Дата начала  : " + dateTimeFormatter.format(this.startTime)
-                + "|" + "Продолжительность (минут) : " + this.duration.toMinutes();
+                + "|" + "Статус : " + this.status;
+    }
+
+    public String toJSON(){
+        Gson gson = new GsonBuilder()
+                .serializeNulls()
+                .setPrettyPrinting()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .create();
+        return gson.toJson(this);
+    }
+
+    public static Task fromJSON(String taskJSONString) throws JsonSyntaxException {
+        Gson gson = new GsonBuilder()
+                .serializeNulls()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .create();
+        return gson.fromJson(taskJSONString,Task.class);
+
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,9 +22,9 @@ class InMemoryTaskManagerTest {
         Task task = new Task("test", "test", TaskStatus.NEW);
 
         taskManager.addTask(task);
-        Task addedTask = taskManager.getTask(0);
+        Optional<Task> addedTask = taskManager.getTask(0);
 
-        Assertions.assertNotNull(addedTask);
+        Assertions.assertNotNull(addedTask.get());
     }
 
     @Test
@@ -31,9 +32,9 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("test", "test", TaskStatus.NEW);
 
         taskManager.addEpic(epic);
-        Task addedEpic = taskManager.getEpic(0);
+        Optional<Epic> addedEpic = taskManager.getEpic(0);
 
-        Assertions.assertNotNull(addedEpic);
+        Assertions.assertNotNull(addedEpic.get());
     }
 
     @Test
@@ -45,9 +46,9 @@ class InMemoryTaskManagerTest {
 
         taskManager.addEpic(epic);
         taskManager.addSubtask(subTask);
-        Task addedSubTask = taskManager.getSubtask(1);
+        Optional<SubTask> addedSubTask = taskManager.getSubtask(1);
 
-        Assertions.assertNotNull(addedSubTask);
+        Assertions.assertNotNull(addedSubTask.get());
     }
 
     /*
@@ -62,10 +63,10 @@ class InMemoryTaskManagerTest {
         taskManager.addTask(taskA);
         taskManager.addTask(taskB);
 
-        Task addedTaskA = taskManager.getTask(0);
-        Task addedTaskB = taskManager.getTask(1);
+        Optional<Task> addedTaskA = taskManager.getTask(0);
+        Optional<Task> addedTaskB = taskManager.getTask(1);
 
-        Assertions.assertFalse(addedTaskA.getName().equals(addedTaskB.getName()));
+        Assertions.assertFalse(addedTaskA.get().getName().equals(addedTaskB.get().getName()));
     }
 
     /*
@@ -77,11 +78,11 @@ class InMemoryTaskManagerTest {
         Task task = new Task("test","test",TaskStatus.NEW);
 
         taskManager.addTask(task);
-        Task addedTask = taskManager.getTask(0);
+        Optional<Task> addedTask = taskManager.getTask(0);
 
-        Assertions.assertEquals(addedTask.getName(),task.getName());
-        Assertions.assertEquals(addedTask.getDescription(),task.getDescription());
-        Assertions.assertEquals(addedTask.getStatus(),task.getStatus());
+        Assertions.assertEquals(addedTask.get().getName(),task.getName());
+        Assertions.assertEquals(addedTask.get().getDescription(),task.getDescription());
+        Assertions.assertEquals(addedTask.get().getStatus(),task.getStatus());
     }
 
     @Test

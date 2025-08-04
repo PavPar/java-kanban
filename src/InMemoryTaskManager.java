@@ -34,23 +34,23 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTask(int id) {
-        Task task = tasks.get(id);
-        historyManager.add(task);
+    public Optional<Task> getTask(int id) {
+        Optional<Task> task = Optional.ofNullable(tasks.get(id));
+        task.ifPresent(value -> historyManager.add(value));
         return task;
     }
 
     @Override
-    public SubTask getSubtask(int id) {
-        SubTask subTask = subTasks.get(id);
-        historyManager.add(subTask);
+    public Optional<SubTask> getSubtask(int id) {
+        Optional<SubTask> subTask = Optional.ofNullable(subTasks.get(id));
+        subTask.ifPresent(value -> historyManager.add(value));
         return subTask;
     }
 
     @Override
-    public Epic getEpic(int id) {
-        Epic epic = epics.get(id);
-        historyManager.add(epic);
+    public Optional<Epic> getEpic(int id) {
+        Optional<Epic> epic = Optional.ofNullable(epics.get(id));
+        epic.ifPresent(value -> historyManager.add(value));
         return epic;
     }
 
@@ -211,6 +211,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     }
 
+    public boolean areTaskOverLappingCheck(Task task, Boolean ignoreSelf) {
+        List<Task> tasks = this.getPrioritizedTasks();
+        return tasks.stream().filter(t ->this.areTasksTimeOverlapping(t, task) && (!ignoreSelf || t.getId() != task.getId())).findFirst().isPresent();
+    }
+
     private int getNextTaskId() {
         return taskCounter++;
     }
@@ -275,6 +280,5 @@ public class InMemoryTaskManager implements TaskManager {
                 .sorted()
                 .findFirst();
     }
-
 
 }
