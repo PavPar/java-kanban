@@ -12,6 +12,8 @@ public class HttpTaskServer {
 
     private static final Map<String, HttpHandler> contextPathMap = new HashMap<String, HttpHandler>() {{
         put("/tasks", new TasksHandler(manager));
+        put("/epics", new EpicsHandler(manager));
+        put("/subtasks", new SubTasksHandler(manager));
         put("/history", new HistoryHandler(manager));
         put("/prioritized", new PrioritizedHandler(manager));
     }};

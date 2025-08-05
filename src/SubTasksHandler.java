@@ -9,10 +9,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class TasksHandler extends BaseHttpHandler implements HttpHandler {
+public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager manager;
 
-    TasksHandler(TaskManager manager) {
+    SubTasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -47,7 +47,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         String[] uriParts = uri.split("/");
 
         if (uriParts.length == 2) {
-            ArrayList<Task> tasks = this.manager.getTasks();
+            ArrayList<SubTask> subTasks = this.manager.getSubTasks();
 
             Gson gson = new GsonBuilder()
                     .serializeNulls()
@@ -57,7 +57,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     .create();
 
 
-            this.sendText(exchange,gson.toJson(tasks));
+            this.sendText(exchange,gson.toJson(subTasks));
             return;
         }
 
@@ -69,10 +69,10 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 throw new IncorectURIPathException("Неправильный тип в пути" + uri);
             }
 
-            Optional<Task> task = this.manager.getTask(id);
+            Optional<SubTask> subtask = this.manager.getSubtask(id);
 
-            if (task.isPresent()) {
-                this.sendText(exchange, task.get().toJSON());
+            if (subtask.isPresent()) {
+                this.sendText(exchange, subtask.get().toJSON());
                 return;
             }
             throw new NotFoundException(String.format("Задача с номером %s не найдена", id));
@@ -97,23 +97,32 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                 throw new BadDataException("Некорректные данные");
             }
 
-            Task parsedTask = Task.fromJSON(jsonBody);
+            SubTask parsedSubTask = SubTask.fromJSON(jsonBody);
 
-
-            if (getIdFromBody(jsonBody) < 0) {
-                if (this.manager.areTaskOverLappingCheck(parsedTask,false)) {
-                    throw new TaskTimeOverlappingException("Пересечение времени Task");
+            if (getIdFieldFromBody(jsonBody,"id") < 0 || getIdFieldFromBody(jsonBody,"epicID") < 0) {
+                if (this.manager.areTaskOverLappingCheck(parsedSubTask,false)) {
+                    throw new TaskTimeOverlappingException("Пересечение времени Subtask");
                 }
 
-                this.manager.addTask(parsedTask);
+                if(!this.manager.hasEpic(parsedSubTask.getEpicID())){
+                    throw new NotFoundException("Нет эпика с id "+parsedSubTask.getEpicID());
+                }
+
+                this.manager.addSubtask(parsedSubTask);
             } else {
-                if (this.manager.areTaskOverLappingCheck(parsedTask,true)) {
-                    throw new TaskTimeOverlappingException("Пересечение времени Task");
+                if (this.manager.areTaskOverLappingCheck(parsedSubTask,true)) {
+                    throw new TaskTimeOverlappingException("Пересечение времени Subtask");
                 }
-                if(!this.manager.hasTask(parsedTask.getId())){
-                    throw new NotFoundException(String.format("Задача с номером %s не найдена", parsedTask.getId()));
+
+                if(!this.manager.hasEpic(parsedSubTask.getEpicID())){
+                    throw new NotFoundException("Нет эпика с id "+parsedSubTask.getEpicID());
                 }
-                this.manager.updateTask(parsedTask);
+
+                if(!this.manager.hasSubTask(parsedSubTask.getId())){
+                    throw new NotFoundException(String.format("Задача с номером %s не найдена", parsedSubTask.getId()));
+                }
+
+                this.manager.updateSubtask(parsedSubTask);
             }
 
             this.sendCreated(exchange);
@@ -141,11 +150,11 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             }
 
             try {
-                if(!this.manager.hasTask(id)){
+                if(!this.manager.hasSubTask(id)){
                     throw new NotFoundException(String.format("Задача с номером %s не найдена", id));
                 }
 
-                this.manager.deleteTask(id);
+                this.manager.deleteSubtask(id);
 
                 this.sendOk(exchange);
             }catch (NotFoundException e){
@@ -157,14 +166,14 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         throw new UnknownURIPathException("Неизвестный путь" + uri);
     }
 
-    private int getIdFromBody(String jsonBody) {
+    private int getIdFieldFromBody(String jsonBody,String field) {
         JsonElement jsonElement = JsonParser.parseString(jsonBody);
         if (!jsonElement.isJsonObject()) {
             throw new JsonSyntaxException("Не объект");
         }
 
         try {
-            return jsonElement.getAsJsonObject().get("id").getAsInt();
+            return jsonElement.getAsJsonObject().get(field).getAsInt();
         } catch (NullPointerException e) {
             return -1;
         }
@@ -178,6 +187,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
 
         try {
             jsonElement.getAsJsonObject().get("name").getAsString();
+            jsonElement.getAsJsonObject().get("epicID").getAsInt();
             jsonElement.getAsJsonObject().get("description").getAsString();
             jsonElement.getAsJsonObject().get("status").getAsString();
             jsonElement.getAsJsonObject().get("duration").getAsLong();

@@ -97,7 +97,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addEpic(Epic epic) {
+    public void addEpic(Epic epic) throws NoSubtaskException,SubtaskAlreadyInEpicException{
+        verifySubtaskForEpic(epic);
         epic.setTaskId(getNextTaskId());
         epics.put(epic.getId(), epic);
     }
@@ -128,9 +129,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateEpic(Epic epic) {
+    public void updateEpic(Epic epic) throws NoSubtaskException, SubtaskAlreadyInEpicException {
         ArrayList<Integer> subtasksUIDs = epic.getSubtasks();
-
+        verifySubtaskForEpic(epic);
         for (int uid : subtasksUIDs) {
             SubTask subtask = subTasks.get(uid);
             subtask.setStatus(epic.getStatus());
@@ -143,11 +144,19 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubtask(SubTask subTask) {
-        historyManager.remove(subTasks.get(subTask.getId()));
+        SubTask originalSubtask = subTasks.get(subTask.getId());
+        historyManager.remove(originalSubtask);
         subTasks.put(subTask.getId(), subTask);
 
         historyManager.remove(epics.get(subTask.getEpicID()));
         Epic epic = epics.get(subTask.getEpicID());
+
+        if(originalSubtask.getEpicID() != subTask.getEpicID()){
+            Epic originalEpic = epics.get(originalSubtask.getEpicID());
+            originalEpic.removeSubtask(originalSubtask.getId());
+            recalculateEpic(originalEpic);
+            epic.addSubtask(subTask.getId());
+        }
 
         recalculateEpic(epic);
     }
@@ -281,4 +290,15 @@ public class InMemoryTaskManager implements TaskManager {
                 .findFirst();
     }
 
+    private void verifySubtaskForEpic(Epic epic){
+        for(int subTaskID: epic.getSubtasks()){
+            if (!hasSubTask(subTaskID)){
+                throw new NoSubtaskException("Не существует Subtask с id - "+ subTaskID);
+            }
+            SubTask subTask = subTasks.get(subTaskID);
+            if(subTask.getEpicID() != epic.getId()){
+                throw new SubtaskAlreadyInEpicException("Subtask уже используется в Epic - " + subTask.getEpicID());
+            }
+        }
+    }
 }
