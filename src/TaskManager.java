@@ -29,6 +29,10 @@ public interface TaskManager {
      void deleteEpic(int uid);
      void deleteSubtask(int uid);
 
+     void deleteTasks();
+     void deleteEpics();
+     void deleteSubtasks();
+
      boolean hasTask(int id);
      boolean hasEpic(int id);
      boolean hasSubTask(int id);

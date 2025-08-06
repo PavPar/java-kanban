@@ -1,20 +1,20 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task {
-    private String name;
-    private String description;
+    @Expose private String name;
+    @Expose private String description;
     private int id;
-    private TaskStatus status;
-    private Duration duration = Duration.ofMinutes(0);
-    private LocalDateTime startTime;
+    @Expose private TaskStatus status;
+    @Expose private Duration duration = Duration.ofMinutes(0);
+    @Expose private LocalDateTime startTime;
 
     public Task(String name, String description, int uid, TaskStatus status) {
         this.name = name;
@@ -135,6 +135,16 @@ public class Task {
         Gson gson = new GsonBuilder()
                 .serializeNulls()
                 .setPrettyPrinting()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .create();
+        return gson.toJson(this);
+    }
+    public String toJSONIgnoringNotExposedValues(){
+        Gson gson = new GsonBuilder()
+                .serializeNulls()
+                .setPrettyPrinting()
+                .excludeFieldsWithoutExposeAnnotation()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();

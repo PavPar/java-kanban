@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -7,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private ArrayList<Integer> subtasks = new ArrayList<>();
+    @Expose private ArrayList<Integer> subtasks = new ArrayList<>();
     private LocalDateTime endTime;
 
     public Epic(String name, String description, TaskStatus status) {

@@ -57,6 +57,4 @@ public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
 
         throw new UnknownURIPathException("Неизвестный путь" + uri);
     }
-
-
 }

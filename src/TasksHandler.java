@@ -57,7 +57,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     .create();
 
 
-            this.sendText(exchange,gson.toJson(tasks));
+            this.sendText(exchange, gson.toJson(tasks));
             return;
         }
 
@@ -85,7 +85,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         String uri = exchange.getRequestURI().toString();
         String[] uriParts = uri.split("/");
 
-        if(uriParts.length > 2) {
+        if (uriParts.length > 2) {
             throw new UnknownURIPathException("Неизвестный путь" + uri);
         }
 
@@ -93,7 +93,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             InputStream inputStream = exchange.getRequestBody();
             String jsonBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-            if(!hasNecessaryFields(jsonBody)){
+            if (!hasNecessaryFields(jsonBody)) {
                 throw new BadDataException("Некорректные данные");
             }
 
@@ -101,17 +101,18 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
 
 
             if (getIdFromBody(jsonBody) < 0) {
-                if (this.manager.areTaskOverLappingCheck(parsedTask,false)) {
+                if (this.manager.areTaskOverLappingCheck(parsedTask, false)) {
                     throw new TaskTimeOverlappingException("Пересечение времени Task");
                 }
 
                 this.manager.addTask(parsedTask);
             } else {
-                if (this.manager.areTaskOverLappingCheck(parsedTask,true)) {
-                    throw new TaskTimeOverlappingException("Пересечение времени Task");
-                }
-                if(!this.manager.hasTask(parsedTask.getId())){
+                if (!this.manager.hasTask(parsedTask.getId())) {
                     throw new NotFoundException(String.format("Задача с номером %s не найдена", parsedTask.getId()));
+                }
+
+                if (this.manager.areTaskOverLappingCheck(parsedTask, true)) {
+                    throw new TaskTimeOverlappingException("Пересечение времени Task");
                 }
                 this.manager.updateTask(parsedTask);
             }
@@ -119,12 +120,12 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             this.sendCreated(exchange);
         } catch (JsonSyntaxException e) {
             this.sendBadType(exchange, e.toString());
-        }catch (TaskTimeOverlappingException e){
+        } catch (TaskTimeOverlappingException e) {
             this.sendHasOverlaps(exchange);
-        }catch (NotFoundException e){
-            this.sendNotFound(exchange,e.getMessage());
-        }catch (BadDataException e){
-            this.sendBadType(exchange,e.getMessage());
+        } catch (NotFoundException e) {
+            this.sendNotFound(exchange, e.getMessage());
+        } catch (BadDataException e) {
+            this.sendBadType(exchange, e.getMessage());
         }
     }
 
@@ -141,15 +142,15 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             }
 
             try {
-                if(!this.manager.hasTask(id)){
+                if (!this.manager.hasTask(id)) {
                     throw new NotFoundException(String.format("Задача с номером %s не найдена", id));
                 }
 
                 this.manager.deleteTask(id);
 
                 this.sendOk(exchange);
-            }catch (NotFoundException e){
-                this.sendNotFound(exchange,e.getMessage());
+            } catch (NotFoundException e) {
+                this.sendNotFound(exchange, e.getMessage());
             }
 
         }
@@ -170,7 +171,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private boolean hasNecessaryFields(String jsonBody){
+    private boolean hasNecessaryFields(String jsonBody) {
         JsonElement jsonElement = JsonParser.parseString(jsonBody);
         if (!jsonElement.isJsonObject()) {
             throw new JsonSyntaxException("Не объект");

@@ -220,6 +220,21 @@ public class InMemoryTaskManager implements TaskManager {
 
     }
 
+    @Override
+    public void deleteEpics() {
+        this.epics.clear();
+    }
+
+    @Override
+    public void deleteTasks() {
+        this.tasks.clear();
+    }
+
+    @Override
+    public void deleteSubtasks() {
+        this.subTasks.clear();
+    }
+
     public boolean areTaskOverLappingCheck(Task task, Boolean ignoreSelf) {
         List<Task> tasks = this.getPrioritizedTasks();
         return tasks.stream().filter(t ->this.areTasksTimeOverlapping(t, task) && (!ignoreSelf || t.getId() != task.getId())).findFirst().isPresent();
